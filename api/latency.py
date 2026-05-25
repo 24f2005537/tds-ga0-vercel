@@ -4,10 +4,8 @@ import statistics
 from http.server import BaseHTTPRequestHandler
 
 DATA_PATH = os.path.join(os.path.dirname(__file__), "..", "q-vercel-latency.json")
-
 with open(DATA_PATH, "r", encoding="utf-8") as f:
     DATA = json.load(f)
-
 
 def p95(values):
     if not values:
@@ -23,19 +21,21 @@ def p95(values):
         return values[f]
     return values[f] + (values[c] - values[f]) * (k - f)
 
-
 class handler(BaseHTTPRequestHandler):
     def _send(self, status, body):
         self.send_response(status)
         self.send_header("Content-Type", "application/json")
         self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header("Access-Control-Allow-Methods", "POST, OPTIONS")
+        self.send_header("Access-Control-Allow-Methods", "POST, OPTIONS, GET")
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
         self.end_headers()
         self.wfile.write(json.dumps(body).encode("utf-8"))
 
     def do_OPTIONS(self):
         self._send(200, {})
+
+    def do_GET(self):
+        self._send(200, {"ok": True})
 
     def do_POST(self):
         try:
@@ -45,9 +45,6 @@ class handler(BaseHTTPRequestHandler):
 
             regions = payload.get("regions", [])
             threshold_ms = payload.get("threshold_ms", 180)
-
-            if not isinstance(regions, list):
-                raise ValueError("regions must be a list")
 
             result = {}
             for region in regions:
