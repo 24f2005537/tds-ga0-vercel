@@ -4,6 +4,7 @@ import statistics
 from http.server import BaseHTTPRequestHandler
 
 DATA_PATH = os.path.join(os.path.dirname(__file__), "..", "q-vercel-latency.json")
+
 with open(DATA_PATH, "r", encoding="utf-8") as f:
     DATA = json.load(f)
 
@@ -50,7 +51,7 @@ class handler(BaseHTTPRequestHandler):
             for region in regions:
                 rows = [r for r in DATA if r.get("region") == region]
                 latencies = [r["latency_ms"] for r in rows if "latency_ms" in r]
-                uptimes = [r["uptime"] for r in rows if "uptime" in r]
+                uptimes = [r["uptime_pct"] for r in rows if "uptime_pct" in r]
 
                 result[region] = {
                     "avg_latency": round(statistics.mean(latencies), 2) if latencies else None,
