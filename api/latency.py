@@ -39,16 +39,17 @@ def p95(values):
 
 @app.post("/api/latency")
 def latency(payload: Payload):
-    result = {}
+    regions_out = {}
     for region in payload.regions:
         rows = [r for r in DATA if r.get("region") == region]
         latencies = [r["latency_ms"] for r in rows if "latency_ms" in r]
         uptimes = [r["uptime_pct"] for r in rows if "uptime_pct" in r]
 
-        result[region] = {
+        regions_out[region] = {
             "avg_latency": round(statistics.mean(latencies), 2) if latencies else None,
             "p95_latency": round(p95(latencies), 2) if latencies else None,
             "avg_uptime": round(statistics.mean(uptimes), 2) if uptimes else None,
             "breaches": sum(1 for x in latencies if x > payload.threshold_ms),
         }
-    return result
+
+    return {"regions": regions_out}
